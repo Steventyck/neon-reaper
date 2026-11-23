@@ -562,7 +562,6 @@ function update(){
   for(let i=0;i<P.blades;i++){let a=P.bAng+(6.28/P.blades)*i;bPos.push({x:P.x+Math.cos(a)*58,y:P.y+Math.sin(a)*58})}
   P.bPos=bPos;
 
-  for(let i=buls.length-1;i>=0;i--){
     for(let i=buls.length-1;i>=0;i--){
     let b=buls[i];b.x+=b.vx;b.y+=b.vy;b.l--;
     if(b.l<=0||hitWall(b.x,b.y,3)){buls.splice(i,1);continue}
