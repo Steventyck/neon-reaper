@@ -122,14 +122,22 @@ const DEF={
   gld:150,dia:50,
   set:{fps:0,showFps:false,snd:true,vib:true,hi:true},
   upg:Array(12).fill(0),
-  boxes:[1,0,0,0],
+    boxes:[1,0,0,0],
+  cardSlot:false,
   inv:[],
   eq:{0:null,1:null,2:null,3:null,4:null,5:null},
-  stat:{kills:0,bestSec:0,boss:0,opened:0,merged:0,upgs:0},
-  achDone:Array(18).fill(false)
+  stat:{kills:0,bestSec:0,boss:0,opened:0,merged:0,upgs:0,ults:0,goldTot:0,cardsTot:0,bestWave:1,superBoss:0,eqCnt:0},
+  achDone:Array(36).fill(false)
 };
 let D=JSON.parse(localStorage.getItem('nr_save_v2'))||JSON.parse(JSON.stringify(DEF));
-function save(){localStorage.setItem('nr_save_v2',JSON.stringify(D));updTop()}
+if(!D.stat.ults)D.stat.ults=0;
+if(!D.stat.goldTot)D.stat.goldTot=0;
+if(!D.stat.cardsTot)D.stat.cardsTot=0;
+if(!D.stat.bestWave)D.stat.bestWave=1;
+if(!D.stat.superBoss)D.stat.superBoss=0;
+D.stat.eqCnt=Object.values(D.eq).filter(Boolean).length;
+while(D.achDone.length<36)D.achDone.push(false);
+function save(){D.stat.eqCnt=Object.values(D.eq).filter(Boolean).length;localStorage.setItem('nr_save_v2',JSON.stringify(D));updTop()}
 
 // ЗВУК
 const AC=new(window.AudioContext||window.webkitAudioContext)();
@@ -181,7 +189,13 @@ const ACHS=[
   {n:'👹 Охотник боссов I',g:1,k:'boss',d:50},{n:'👹 Охотник боссов II',g:5,k:'boss',d:150},{n:'👹 Охотник боссов III',g:15,k:'boss',d:400},
   {n:'📦 Лудоман I',g:3,k:'opened',d:30},{n:'📦 Лудоман II',g:15,k:'opened',d:100},{n:'📦 Лудоман III',g:40,k:'opened',d:250},
   {n:'⚒️ Мастер кузни I',g:1,k:'merged',d:40},{n:'⚒️ Мастер кузни II',g:5,k:'merged',d:120},{n:'⚒️ Мастер кузни III',g:15,k:'merged',d:300},
-  {n:'⚡ Эволюция I',g:10,k:'upgs',d:30},{n:'⚡ Эволюция II',g:50,k:'upgs',d:90},{n:'⚡ Эволюция III',g:150,k:'upgs',d:250}
+  {n:'⚡ Эволюция I',g:10,k:'upgs',d:30},{n:'⚡ Эволюция II',g:50,k:'upgs',d:90},{n:'⚡ Эволюция III',g:150,k:'upgs',d:250},
+  {n:'🔥 Повелитель ульты I',g:3,k:'ults',d:25},{n:'🔥 Повелитель ульты II',g:15,k:'ults',d:70},{n:'🔥 Повелитель ульты III',g:50,k:'ults',d:180},
+  {n:'💰 Золотоискатель I',g:500,k:'goldTot',d:25},{n:'💰 Золотоискатель II',g:3000,k:'goldTot',d:75},{n:'💰 Золотоискатель III',g:15000,k:'goldTot',d:200},
+  {n:'🃏 Коллекционер карт I',g:5,k:'cardsTot',d:30},{n:'🃏 Коллекционер карт II',g:20,k:'cardsTot',d:90},{n:'🃏 Коллекционер карт III',g:60,k:'cardsTot',d:300},
+  {n:'🌊 Покоритель волн I',g:5,k:'bestWave',d:30},{n:'🌊 Покоритель волн II',g:12,k:'bestWave',d:80},{n:'🌊 Покоритель волн III',g:25,k:'bestWave',d:220},
+  {n:'👑 Убийца Супер-боссов I',g:1,k:'superBoss',d:60},{n:'👑 Убийца Супер-боссов II',g:3,k:'superBoss',d:150},{n:'👑 Убийца Супер-боссов III',g:10,k:'superBoss',d:350},
+  {n:'👕 Модник I',g:2,k:'eqCnt',d:20},{n:'👕 Модник II',g:4,k:'eqCnt',d:50},{n:'👕 Модник III',g:6,k:'eqCnt',d:120}                                          
 ];
 
 function updTop(){
@@ -257,6 +271,16 @@ document.getElementById('nav-shop').onclick=function(){openMod('Магазин �
     g.appendChild(c);
   });
   b.appendChild(g);
+    let sc=document.createElement('div');sc.className='card r3';
+  sc.innerHTML='<div style="display:flex;justify-content:space-between"><b>🃏 +1 Слот активных карт</b><span class="dia">'+(D.cardSlot?'Ур. 1/1':'Ур. 0/1')+'</span></div>'+
+    '<div style="font-size:12px;color:#94a3b8">Увеличивает макс. количество карт в забеге с 3 до 4</div>'+
+    '<button class="act" '+(D.cardSlot||D.dia<100?'disabled':'')+'>'+(D.cardSlot?'КУПЛЕНО (МАКС)':'Купить (100 💎)')+'</button>';
+  sc.querySelector('button').onclick=function(){
+    if(D.cardSlot||D.dia<100)return;
+    D.dia-=100;D.cardSlot=true;save();snd(750,'sine',.2);vib(40);
+    document.getElementById('nav-shop').click();
+  };
+  b.appendChild(sc);
 })};
 
 document.getElementById('nav-upg').onclick=function(){openMod('Прокачка талантов',function(b){
@@ -418,16 +442,22 @@ function updHudCards(){
 
 function genWalls(smooth){
   walls=[];
-  for(let gx=260;gx<MAP-260;gx+=260){
-    for(let gy=260;gy<MAP-260;gy+=260){
-      if(Math.hypot(gx-P.x,gy-P.y)<220)continue;
-      if(Math.random()<0.48){
+  for(let gx=200;gx<MAP-200;gx+=200){
+    for(let gy=200;gy<MAP-200;gy+=200){
+      if(Math.hypot(gx-P.x,gy-P.y)<240)continue;
+      if(Math.random()<0.62){
         let hor=Math.random()<0.5;
-        walls.push({x:gx-45,y:gy-45,w:hor?110:26,h:hor?26:110,op:smooth?0:1,grow:smooth});
+        let w1={x:gx-45,y:gy-45,w:hor?120:26,h:hor?26:120,op:smooth?0:1,grow:smooth};
+        walls.push(w1);
+        if(Math.random()<0.65){
+          if(hor)walls.push({x:gx-45+(Math.random()<.5?0:94),y:gy-45+(Math.random()<.5?-94:26),w:26,h:110,op:smooth?0:1,grow:smooth});
+          else walls.push({x:gx-45+(Math.random()<.5?-94:26),y:gy-45+(Math.random()<.5?0:94),w:110,h:26,op:smooth?0:1,grow:smooth});
+        }
       }
     }
   }
 }
+
 
 function initRun(demo){
   let s=getStats();
@@ -443,28 +473,30 @@ document.getElementById('btn-play').onclick=function(){
   document.getElementById('hud').classList.remove('hid');
   snd(450,'sawtooth',.2);
 };
-  document.getElementById('btn-pause').onclick=function(){
-  if(stMode!=='PLAY')return;
-  stMode='PAUSE';joy.on=false;
+  function renderPause(){
   openMod('Пауза',function(b){
     document.getElementById('m-close').classList.add('hid');
+    let maxS=D.cardSlot?4:3;
     let dHtml=P.deck.length?P.deck.map(function(c){
       let inf=CARDS[c.id];
       return '<div style="display:flex;justify-content:space-between;font-size:13px"><span>'+inf.ic+' '+inf.n+'</span><b class="dia">Ур. '+c.lv+'/'+inf.max+'</b></div>';
     }).join(''):'<div style="font-size:12px;color:#94a3b8">Карты ещё не выбраны</div>';
-    b.innerHTML='<div class="card"><b>Активные карты ('+P.deck.length+'/3)</b>'+dHtml+'</div>'+
+    b.innerHTML='<div class="card"><b>Активные карты ('+P.deck.length+'/'+maxS+')</b>'+dHtml+'</div>'+
       '<div class="card" style="flex-direction:row;align-items:center"><b>Звук</b><button class="act" id="p-snd">'+(D.set.snd?'ВКЛ':'ВЫКЛ')+'</button></div>'+
       '<div class="card" style="flex-direction:row;align-items:center"><b>Вибрация</b><button class="act" id="p-vib">'+(D.set.vib?'ВКЛ':'ВЫКЛ')+'</button></div>'+
       '<div class="card" style="flex-direction:row;align-items:center"><b>Графика</b><button class="act" id="p-hi">'+(D.set.hi?'УЛЬТРА':'ЭКОНОМ')+'</button></div>'+
       '<button class="btn-play" id="p-cont" style="font-size:18px;margin-top:6px">ПРОДОЛЖИТЬ</button>'+
       '<button class="act act-p" id="p-exit" style="padding:14px;font-size:15px">ВЫЙТИ В МЕНЮ</button>';
-    b.querySelector('#p-snd').onclick=function(){D.set.snd=!D.set.snd;save();document.getElementById('btn-pause').click()};
-    b.querySelector('#p-vib').onclick=function(){D.set.vib=!D.set.vib;save();document.getElementById('btn-pause').click()};
-    b.querySelector('#p-hi').onclick=function(){D.set.hi=!D.set.hi;save();document.getElementById('btn-pause').click()};
+    b.querySelector('#p-snd').onclick=function(){D.set.snd=!D.set.snd;save();renderPause()};
+    b.querySelector('#p-vib').onclick=function(){D.set.vib=!D.set.vib;save();renderPause()};
+    b.querySelector('#p-hi').onclick=function(){D.set.hi=!D.set.hi;save();renderPause()};
     b.querySelector('#p-cont').onclick=function(){document.getElementById('m-close').classList.remove('hid');mod.classList.add('hid');stMode='PLAY'};
     b.querySelector('#p-exit').onclick=function(){document.getElementById('m-close').classList.remove('hid');mod.classList.add('hid');endRun()};
   });
-};
+}
+function trigPause(e){if(e)e.preventDefault();if(stMode!=='PLAY')return;stMode='PAUSE';joy.on=false;renderPause()}
+document.getElementById('btn-pause').addEventListener('touchstart',trigPause,{passive:false});
+document.getElementById('btn-pause').onclick=trigPause;
 
 addEventListener('touchstart',function(e){
   if(stMode!=='PLAY'||joy.on)return;
@@ -525,14 +557,14 @@ function hasLOS(x1,y1,x2,y2){
        
 function spawnMob(){
   for(let tr=0;tr<10;tr++){
-    let a=Math.random()*6.28,d=340+Math.random()*240;
+    let a=Math.random()*6.28,d=450+Math.random()*260;
     let ex=Math.max(40,Math.min(MAP-40,P.x+Math.cos(a)*d));
     let ey=Math.max(40,Math.min(MAP-40,P.y+Math.sin(a)*d));
     let roll=Math.random(),tier=0;
     if(wave>=3&&roll<0.28)tier=1;
     if(wave>=6&&roll<0.12)tier=2;
     let r=tier===2?20:tier===1?14:11;
-    if(!hitWall(ex,ey,r+4)){
+    if(Math.hypot(ex-P.x,ey-P.y)>=430&&!hitWall(ex,ey,r+4)){
       let sc=1+wave*0.12;
       ens.push({x:ex,y:ey,r:r,hp:(tier===2?160:tier===1?55:24)*sc,spd:tier===2?1.05:tier===1?2.1:1.45,col:tier===2?'#b829ff':tier===1?'#ff6b00':'#ff0055',tier:tier,boss:false,hit:0});
       break;
@@ -545,8 +577,9 @@ function spawnWave(){
   let isBoss=(!isElite&&wave%5===0);
   if(isElite||isBoss){
     let bType=Math.floor(Math.random()*5);
-    let bx=Math.max(150,Math.min(MAP-150,P.x+(Math.random()<.5?-260:260)));
-    let by=Math.max(150,Math.min(MAP-150,P.y+(Math.random()<.5?-260:260)));
+  let ba=Math.random()*6.28,bd=460;
+  let bx=Math.max(150,Math.min(MAP-150,P.x+Math.cos(ba)*bd));
+  let by=Math.max(150,Math.min(MAP-150,P.y+Math.sin(ba)*bd));
     if(isElite){
       walls=walls.filter(function(w){
         let d=Math.hypot((w.x+w.w/2)-bx,(w.y+w.h/2)-by);
@@ -565,7 +598,7 @@ function showLevelCards(){
   let avail=CARDS.filter(function(c){
     let owned=P.deck.find(function(x){return x.id===c.id});
     if(owned)return owned.lv<c.max;
-    return P.deck.length<3;
+    return P.deck.length<(D.cardSlot?4:3);
   });
   if(avail.length===0){P.dmg*=1.05;P.hp=Math.min(P.mhp,P.hp+P.mhp*0.15);return}
 
@@ -580,7 +613,7 @@ function showLevelCards(){
       btn.innerHTML='<div style="display:flex;justify-content:space-between"><b style="color:#00ff88;font-size:16px">'+c.ic+' '+c.n+'</b><span class="dia">Ур. '+nextLv+'/'+c.max+'</span></div><div style="font-size:13px">'+c.d+'</div>';
       btn.onclick=function(){
         c.f(P);
-        if(owned)owned.lv++;else P.deck.push({id:c.id,lv:1});
+        D.stat.cardsTot++;if(owned)owned.lv++;else P.deck.push({id:c.id,lv:1});
         updHudCards();
         document.getElementById('m-close').classList.remove('hid');mod.classList.add('hid');stMode='PLAY';
       };
@@ -612,8 +645,9 @@ function showRoulette(){
 }
 
 function endRun(){
-  stMode='OVER';D.gld+=runGld;
+  stMode='OVER';D.gld+=runGld;D.stat.goldTot+=runGld;
   if(Math.floor(runSec)>D.stat.bestSec)D.stat.bestSec=Math.floor(runSec);
+  if(wave>D.stat.bestWave)D.stat.bestWave=wave;
   save();
   document.getElementById('hud').classList.add('hid');
   openMod('Забег окончен',function(b){
@@ -741,7 +775,7 @@ function update(){
         drops.push({x:e.x+6,y:e.y,t:'x',v:xVal});
         if(e.boss){
           D.stat.boss++;
-          if(e.elite)showRoulette();
+          if(e.elite){D.stat.superBoss++;showRoulette()}
           else{let dGain=10+Math.floor(wave/5)*3;D.dia+=dGain;save();snd(800,'sine',.25)}
         }
       }
@@ -754,7 +788,7 @@ function update(){
     if(dist<P.mag){d.x+=(P.x-d.x)*0.18;d.y+=(P.y-d.y)*0.18}
     if(dist<P.r+10){
       if(d.t==='g')runGld+=d.v;
-      else{P.xp+=d.v;if(P.xp>=P.nxp){P.xp-=P.nxp;P.lvl++;P.nxp=Math.floor(P.nxp*1.35);if(P.picks<3){P.picks++;showLevelCards()}else{P.dmg*=1.05;P.hp=Math.min(P.mhp,P.hp+P.mhp*0.15)}}}
+      else{P.xp+=d.v;if(P.xp>=P.nxp){P.xp-=P.nxp;P.lvl++;P.nxp=Math.floor(P.nxp*1.35);showLevelCards()}}
 
       drops.splice(i,1);
     }
