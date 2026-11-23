@@ -400,8 +400,8 @@ document.getElementById('btn-play').onclick=function(){
   snd(450,'sawtooth',.2);
 };
 
-addEventListener('touchstart',function(e){if(stMode!=='PLAY'||e.target.closest('.int'))return;let t=e.touches;joy={on:true,sx:t.clientX,sy:t.clientY,dx:0,dy:0}});
-addEventListener('touchmove',function(e){if(!joy.on)return;let t=e.touches,vx=t.clientX-joy.sx,vy=t.clientY-joy.sy,d=Math.hypot(vx,vy);if(d>0){let c=Math.min(d,50)/50;joy.dx=vx/d*c;joy.dy=vy/d*c}});
+addEventListener('touchstart',function(e){if(stMode!=='PLAY'||e.target.closest('.int'))return;let t=e.touches.item(0);joy={on:true,sx:t.clientX,sy:t.clientY,dx:0,dy:0}});
+addEventListener('touchmove',function(e){if(!joy.on)return;let t=e.touches.item(0),vx=t.clientX-joy.sx,vy=t.clientY-joy.sy,d=Math.hypot(vx,vy);if(d>0){let c=Math.min(d,50)/50;joy.dx=vx/d*c;joy.dy=vy/d*c}});
 addEventListener('touchend',function(){joy.on=false;joy.dx=0;joy.dy=0});
 
 document.getElementById('btn-ult').onclick=function(){
