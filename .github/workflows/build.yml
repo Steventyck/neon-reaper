@@ -13,9 +13,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-
+      - name: Cache Android Keystore
+        uses: actions/cache@v4
+        with:
+          path: ~/.android
+          key: android-debug-keystore-v1
+          
       - name: Setup Capacitor & Build APK
         run: |
+          sed -i 's/versionCode 1/versionCode ${{ github.run_number }}/g' android/app/build.gradle
+          sed -i 's/versionName "1.0"/versionName "1.1"/g' android/app/build.gradle
           mkdir www && cp index.html www/
           npm init -y
           npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
