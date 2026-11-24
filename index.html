@@ -237,7 +237,7 @@ function getStats(){
 
 const mod=document.getElementById('modal'),mTitle=document.getElementById('m-title'),mBody=document.getElementById('m-body');
 document.getElementById('m-close').onclick=function(){mod.classList.add('hid');if(stMode==='PAUSE')stMode='PLAY'};
-function openMod(title,fn){mTitle.textContent=title;mBody.innerHTML='';fn(mBody);mod.classList.remove('hid');mod.style.zIndex='999';void mod.offsetHeight}
+function openMod(title,fn){mTitle.textContent=title;mBody.innerHTML='';fn(mBody);document.body.appendChild(mod);mod.classList.remove('hid');mod.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;padding:16px;background:rgba(6,6,12,.96)'}
 document.getElementById('btn-prof').onclick=function(){
   openMod('Профиль игрока',function(b){
     let cost=D.nameChanged?50:0;
