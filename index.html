@@ -10,6 +10,7 @@ body{background:#06060c;color:#fff;font-family:system-ui,-apple-system,sans-seri
 canvas{display:block;width:100%;height:100%}
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;padding:16px;pointer-events:none;z-index:5}
 .hid{display:none!important}
+.int{pointer-events:auto}
 button{touch-action:manipulation;cursor:pointer}
 .mod{z-index:50}
 #m-scr{z-index:10}
@@ -615,7 +616,7 @@ document.getElementById('btn-play').onclick=function(){
       save();
       document.getElementById('hud').classList.add('hid');
       document.getElementById('m-scr').classList.remove('hid');
-      initRun(true);
+      initRun(true);stMode='MENU';
     };
   });
 }
