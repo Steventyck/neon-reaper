@@ -10,7 +10,9 @@ body{background:#06060c;color:#fff;font-family:system-ui,-apple-system,sans-seri
 canvas{display:block;width:100%;height:100%}
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;padding:16px;pointer-events:none;z-index:5}
 .hid{display:none!important}
-.int{pointer-events:auto}
+button{touch-action:manipulation;cursor:pointer}
+.mod{z-index:50}
+#m-scr{z-index:10}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px;z-index:10}
 .cur-row{display:flex;gap:8px}
 .pill{background:rgba(12,16,28,.88);border:1px solid rgba(0,240,255,.35);padding:7px 12px;border-radius:12px;font-weight:800;font-size:14px;backdrop-filter:blur(6px)}
@@ -432,7 +434,7 @@ document.getElementById('nav-inv').onclick=function(){openMod('Инвентар�
     mid.style.cssText='height:100%;align-items:center;justify-content:center;border-color:#00f0ff;padding:6px;text-align:center;gap:6px';
     let st=getStats();
     mid.innerHTML='<div style="font-size:10px;font-weight:900;color:#00f0ff">'+D.name+'</div>'+
-      '<img src="'+SPR.hero.toDataURL()+'" style="width:64px;height:64px;image-rendering:pixelated;transform:rotate(-90deg)">'+
+      '<img src="'+SPR.hero.toDataURL()+'" style="width:64px;height:64px;image-rendering:pixelated">'+
       '<div style="font-size:9px;color:#94a3b8;line-height:1.3">⚔️ '+Math.round(st.dmg)+'<br>❤️ '+Math.round(st.hp)+'<br>🛡️ '+Math.round(st.arm)+'</div>';
     wrap.appendChild(colL);wrap.appendChild(mid);wrap.appendChild(colR);
     ic.appendChild(wrap);
@@ -604,7 +606,17 @@ document.getElementById('btn-play').onclick=function(){
     b.querySelector('#p-vib').onclick=function(){D.set.vib=!D.set.vib;save();renderPause()};
     b.querySelector('#p-hi').onclick=function(){D.set.hi=!D.set.hi;save();renderPause()};
     b.querySelector('#p-cont').onclick=function(){document.getElementById('m-close').classList.remove('hid');mod.classList.add('hid');stMode='PLAY'};
-    b.querySelector('#p-exit').onclick=function(){document.getElementById('m-close').classList.remove('hid');mod.classList.add('hid');endRun()};
+    b.querySelector('#p-exit').onclick=function(){
+      document.getElementById('m-close').classList.remove('hid');
+      mod.classList.add('hid');
+      D.gld+=runGld;D.stat.goldTot+=runGld;
+      if(Math.floor(runSec)>D.stat.bestSec)D.stat.bestSec=Math.floor(runSec);
+      if(wave>D.stat.bestWave)D.stat.bestWave=wave;
+      save();
+      document.getElementById('hud').classList.add('hid');
+      document.getElementById('m-scr').classList.remove('hid');
+      initRun(true);
+    };
   });
 }
 function trigPause(e){if(e)e.preventDefault();if(stMode!=='PLAY')return;stMode='PAUSE';joy.on=false;renderPause()}
@@ -1022,7 +1034,8 @@ function draw(){
     }
     X.stroke();
   });
-  X.save();X.translate(P.x,P.y);X.rotate(P.ang);
+  X.save();X.translate(P.x,P.y);
+  if(Math.cos(P.ang)<0)X.scale(-1,1);
   X.drawImage(SPR.hero,-SPR.hero.width/2,-SPR.hero.height/2);
   X.restore();
 
