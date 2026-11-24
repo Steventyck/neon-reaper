@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>NEON REAPER</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;touch-action:none}
+*{box-sizing:border-box;margin:0;padding:0;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
 body{background:#06060c;color:#fff;font-family:system-ui,-apple-system,sans-serif;overflow:hidden;width:100vw;height:100vh}
 canvas{display:block;width:100%;height:100%}
 .scr{position:absolute;inset:0;display:flex;flex-direction:column;padding:16px;pointer-events:none;z-index:5}
@@ -31,7 +31,7 @@ button{touch-action:manipulation;cursor:pointer}
 #fps-box{position:fixed;top:6px;left:6px;background:rgba(0,0,0,.65);color:#00ff88;font-size:11px;font-weight:800;padding:2px 6px;border-radius:6px;z-index:99;pointer-events:none}
 
 /* Модальные окна */
-.mod{position:fixed;inset:0;background:rgba(6,8,15,.95);z-index:30;display:flex;flex-direction:column;padding:16px;pointer-events:auto}
+.mod{position:fixed;inset:0;background:rgba(6,6,12,.94);display:flex;flex-direction:column;padding:16px;z-index:999}
 .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:10px}
 .mtitle{font-size:20px;font-weight:900;color:#00f0ff;text-transform:uppercase}
 .close{background:#ff0055;border:none;color:#fff;font-weight:900;padding:6px 12px;border-radius:10px;font-size:14px}
@@ -237,7 +237,7 @@ function getStats(){
 
 const mod=document.getElementById('modal'),mTitle=document.getElementById('m-title'),mBody=document.getElementById('m-body');
 document.getElementById('m-close').onclick=function(){mod.classList.add('hid');if(stMode==='PAUSE')stMode='PLAY'};
-function openMod(title,fn){mTitle.textContent=title;mBody.innerHTML='';fn(mBody);mod.classList.remove('hid')}
+function openMod(title,fn){mTitle.textContent=title;mBody.innerHTML='';fn(mBody);mod.classList.remove('hid');mod.style.zIndex='999';void mod.offsetHeight}
 document.getElementById('btn-prof').onclick=function(){
   openMod('Профиль игрока',function(b){
     let cost=D.nameChanged?50:0;
